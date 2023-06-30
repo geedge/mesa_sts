@@ -1,0 +1,97 @@
+cmake_minimum_required (VERSION 2.8)
+
+set(lib_name mesa_sts)
+
+project (${lib_name})
+
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+include(Version)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_MACOSX_RPATH 0)
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Wall)
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+	set(CMAKE_INSTALL_PREFIX "/opt/MESA" CACHE PATH "default install path" FORCE)
+endif()
+
+find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
+if (CMAKE_CXX_CPPCHECK)
+    list(
+        APPEND CMAKE_CXX_CPPCHECK 
+            "--enable=all"
+            "--error-exitcode=1"
+            "--suppress=unreachableCode"
+            "--suppress=unusedFunction"
+            "--suppress=missingInclude"
+            "--suppress=uselessAssignmentPtrArg"
+            "--suppress=unmatchedSuppression"
+            "--suppress=internalAstError"
+            "--suppress=unmatchedSuppression"
+            "--suppress=unreadVariable"
+            "--suppress=memleakOnRealloc"
+            "--suppress=redundantAssignment"
+            "--suppress=constParameter"
+            "--suppress=unsignedLessThanZero"
+            "--suppress=variableScope"
+            "--suppress=cstyleCast"
+            "--suppress=objectIndex"
+            "--suppress=shadowVariable"
+            "--suppress=nullPointerRedundantCheck"
+            "--suppress=ctunullpointer"
+            "--suppress=shadowFunction"
+            "--suppress=unusedStructMember"
+    )
+    set(CMAKE_C_CPPCHECK ${CMAKE_CXX_CPPCHECK})
+else()
+  message(FATAL_ERROR "Could not find the program cppcheck.")
+endif()
+
+#for ASAN
+set(ASAN_OPTION "OFF" CACHE STRING " set asan type chosen by the user, using OFF as default")
+set_property(CACHE ASAN_OPTION  PROPERTY STRINGS OFF ADDRESS THREAD)
+message(STATUS "ASAN_OPTION='${ASAN_OPTION}'")
+
+if(ASAN_OPTION MATCHES "ADDRESS")
+    set(CMAKE_C_FLAGS "${CMAKADDRESS} -g -DCMAKE_BUILD_TYPE=Debug -fsanitize=address -fno-omit-frame-pointer")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -DCMAKE_BUILD_TYPE=Debug -fsanitize=address -fno-omit-frame-pointer")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lasan")
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lasan")
+elseif(ASAN_OPTION MATCHES "THREAD")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -DCMAKE_BUILD_TYPE=Debug -fsanitize=thread -fno-omit-frame-pointer")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -DCMAKE_BUILD_TYPE=Debug -fsanitize=thread -fno-omit-frame-pointer")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lasan")
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lasan")
+endif()
+# end of for ASAN
+
+include_directories(${PROJECT_SOURCE_DIR}/inc/)
+include_directories(${PROJECT_SOURCE_DIR}/src/)
+
+file(GLOB SRC
+    "src/*.c"
+    "src/*.cpp"
+)
+
+add_subdirectory(vendor)
+add_subdirectory(test)
+enable_testing()
+
+# Shared Library Output
+add_library(${lib_name}_shared SHARED ${SRC})
+set_target_properties(${lib_name}_shared PROPERTIES LINK_FLAGS
+    "-Wl,--version-script=${PROJECT_SOURCE_DIR}/src/version.map")
+if(DEFINED MESA_SHARED_INSTALL_DIR)
+	set_target_properties(${lib_name}_shared PROPERTIES OUTPUT_NAME ${lib_name} LIBRARY_OUTPUT_DIRECTORY ${MESA_SHARED_INSTALL_DIR})
+else()
+	set_target_properties(${lib_name}_shared PROPERTIES OUTPUT_NAME ${lib_name})
+endif()
+
+# static Library Output
+add_library(${lib_name}_static STATIC ${SRC})
+set_target_properties(${lib_name}_static PROPERTIES OUTPUT_NAME ${lib_name})
+
+install(TARGETS ${lib_name}_shared LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib COMPONENT LIBRARIES)
+install(TARGETS ${lib_name}_static LIBRARY ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib COMPONENT LIBRARIES)
+install(FILES inc/mesa_sts.h   DESTINATION   ${CMAKE_INSTALL_PREFIX}/include/MESA COMPONENT HEADER)
+
+include(Package)

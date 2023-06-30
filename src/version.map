@@ -1,0 +1,6 @@
+{
+  global: 	
+    mesa_statistical_test_suite;
+	  GIT_VERSION*;
+  local: *;
+};
