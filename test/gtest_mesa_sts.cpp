@@ -1,4 +1,3 @@
-#include <pcap.h>
 #include <netinet/ip6.h>
 #include <netinet/ip.h>
 #include <netinet/if_ether.h>
@@ -8,9 +7,7 @@
 
 #include "gtest/gtest.h"
 
-extern "C" {
 #include "mesa_sts.h"
-}
 
 #define MAX_PKT_CNT 1
 
@@ -32,8 +29,9 @@ static int read_pcap_and_judge_randomness(const char* pcap_file, struct sts_resu
 		if (eth_type == ETH_P_IP) {
             int l4_proto = *(unsigned char *)(packet + sizeof(struct ethhdr) + 9);
             if (l4_proto == IPPROTO_TCP) {
-                payload_len = header->caplen - sizeof(struct ethhdr) - sizeof(struct iphdr) - sizeof(struct tcphdr);
-			    payload = (char *)packet + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct tcphdr);
+                int tcp_header_len = (*(unsigned char *)(packet + sizeof(struct ethhdr) + sizeof(struct iphdr) + 12) & 0xf0) >> 2;
+                payload_len = header->caplen - sizeof(struct ethhdr) - sizeof(struct iphdr) - tcp_header_len;
+			    payload = (char *)packet + sizeof(struct ethhdr) + sizeof(struct iphdr) + tcp_header_len;
             } else if (l4_proto == IPPROTO_UDP) {
                 payload_len = header->caplen - sizeof(struct ethhdr) - sizeof(struct iphdr) - sizeof(struct udphdr);
                 payload = (char *)packet + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr);
@@ -44,8 +42,9 @@ static int read_pcap_and_judge_randomness(const char* pcap_file, struct sts_resu
 		} else if (eth_type == ETH_P_IPV6) {
             int l4_proto = *(unsigned char *)(packet + sizeof(struct ethhdr) + 6);
             if (l4_proto == IPPROTO_TCP) {
-                payload_len = header->caplen - sizeof(struct ethhdr) - sizeof(struct ip6_hdr) - sizeof(struct tcphdr);
-			    payload = (char *)packet + sizeof(struct ethhdr) + sizeof(struct ip6_hdr) + sizeof(struct tcphdr);
+                int tcp_header_len = (*(unsigned char *)(packet + sizeof(struct ethhdr) + sizeof(struct ip6_hdr) + 12) & 0xf0) >> 2;
+                payload_len = header->caplen - sizeof(struct ethhdr) - sizeof(struct ip6_hdr) - tcp_header_len;
+			    payload = (char *)packet + sizeof(struct ethhdr) + sizeof(struct ip6_hdr) + tcp_header_len;
             } else if (l4_proto == IPPROTO_UDP) {
                 payload_len = header->caplen - sizeof(struct ethhdr) - sizeof(struct ip6_hdr) - sizeof(struct udphdr);
                 payload = (char *)packet + sizeof(struct ethhdr) + sizeof(struct ip6_hdr) + sizeof(struct udphdr);
