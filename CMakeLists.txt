@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8)
 
-set(lib_name mesa_sts)
+set(lib_name MESA_sts)
 
 project (${lib_name})
 

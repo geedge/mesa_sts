@@ -10,6 +10,6 @@ link_directories(/opt/MESA/lib)
 link_directories("${CMAKE_BINARY_DIR}")
 
 add_executable(gtest_mesa gtest_mesa_sts.cpp)
-target_link_libraries(gtest_mesa gtest-static pcap pthread mesa_sts)
+target_link_libraries(gtest_mesa gtest-static pcap pthread MESA_sts)
 
 file(COPY pcap DESTINATION ./)
