@@ -65,7 +65,7 @@ static int read_pcap_and_judge_randomness(const char* pcap_file, struct sts_resu
         }
     }
 
-    mesa_statistical_test_suite(content, content_len, result);
+    mesa_statistical_test_suite(content, content_len, result, 0xffffffff);
 
     pcap_close(handle);
 
