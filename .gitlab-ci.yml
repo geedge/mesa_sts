@@ -1,6 +1,7 @@
 variables:
   GIT_STRATEGY: "clone"
   BUILD_IMAGE_X86_64_ROCKY8: "git.mesalab.cn:7443/mesa_platform/build-env:rockylinux"
+  BUILD_IMAGE_AARCH64_ROCKY9: "git.mesalab.cn:7443/mesa_platform/build-env:rocky9-aarch64"
   BUILD_PADDING_PREFIX: /tmp/padding_for_CPACK_RPM_BUILD_SOURCE_DIRS_PREFIX_PREFIX_PREFIX_PREFIX_PREFIX_PREFIX/
   INSTALL_DEPENDENCY_LIBRARY:   libasan sudo 
   INSTALL_DEPENDENCY_FRAMEWORK: sapp-devel libMESA_handle_logger-devel  libcjson-devel libMESA_field_stat2-devel framework_env  libMESA_prof_load-devel libbreakpad_mini-devel libMESA_htable-devel libMESA_jump_layer libMESA_htable libnsl
