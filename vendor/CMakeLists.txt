@@ -5,7 +5,7 @@ include(ExternalProject)
 ExternalProject_Add(libgtest PREFIX libgtest
         URL ${CMAKE_SOURCE_DIR}/vendor/googletest-release-1.10.0.tar.gz
         URL_MD5 ecd1fa65e7de707cd5c00bdac56022cd
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_CXX_FLAGS=-Wno-maybe-uninitialized)
 ExternalProject_Get_Property(libgtest INSTALL_DIR)
 file(MAKE_DIRECTORY ${INSTALL_DIR}/include)
 add_library(gtest-static STATIC IMPORTED GLOBAL)
